@@ -15,7 +15,7 @@ type transferRequest struct {
 	Currency      string `json:"currency" binding:"required,currency"`
 }
 
-func (s *Server) createTransfer(c *gin.Context) {
+func (server *Server) createTransfer(c *gin.Context) {
 	var req transferRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -23,11 +23,11 @@ func (s *Server) createTransfer(c *gin.Context) {
 		return
 	}
 
-	if !s.validAccount(c, req.FromAccountId, req.Currency) {
+	if !server.validAccount(c, req.FromAccountId, req.Currency) {
 		return
 	}
 
-	if !s.validAccount(c, req.ToAccountId, req.Currency) {
+	if !server.validAccount(c, req.ToAccountId, req.Currency) {
 		return
 	}
 
@@ -37,7 +37,7 @@ func (s *Server) createTransfer(c *gin.Context) {
 		Amount:        req.Amount,
 	}
 
-	transfer, err := s.store.TransferTx(c, arg)
+	transfer, err := server.store.TransferTx(c, arg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -45,8 +45,8 @@ func (s *Server) createTransfer(c *gin.Context) {
 	c.JSON(http.StatusOK, transfer)
 }
 
-func (s *Server) validAccount(c *gin.Context, accountID int64, currency string) bool {
-	account, err := s.store.GetAccount(c, accountID)
+func (server *Server) validAccount(c *gin.Context, accountID int64, currency string) bool {
+	account, err := server.store.GetAccount(c, accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, errorResponse(err))

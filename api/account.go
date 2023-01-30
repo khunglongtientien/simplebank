@@ -13,7 +13,7 @@ type createAccountRequest struct {
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
-func (s *Server) createAccount(c *gin.Context) {
+func (server *Server) createAccount(c *gin.Context) {
 	var req createAccountRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -27,7 +27,7 @@ func (s *Server) createAccount(c *gin.Context) {
 		Currency: req.Currency,
 	}
 
-	account, err := s.store.CreateAccount(c, arg)
+	account, err := server.store.CreateAccount(c, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -46,13 +46,13 @@ type getAccountRequest struct {
 	Id int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (s *Server) getAccount(c *gin.Context) {
+func (server *Server) getAccount(c *gin.Context) {
 	var req getAccountRequest
 	if err := c.ShouldBindUri(&req); err != nil {
 		c.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	account, err := s.store.GetAccount(c, req.Id)
+	account, err := server.store.GetAccount(c, req.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, errorResponse(err))
@@ -70,7 +70,7 @@ type listAccountRequest struct {
 	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
-func (s *Server) listAccounts(c *gin.Context) {
+func (server *Server) listAccounts(c *gin.Context) {
 	var req listAccountRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, errorResponse(err))
@@ -81,7 +81,7 @@ func (s *Server) listAccounts(c *gin.Context) {
 		Limit:  req.PageSize,
 		Offset: (req.PageId - 1) * req.PageSize,
 	}
-	accounts, err := s.store.ListAccounts(c, arg)
+	accounts, err := server.store.ListAccounts(c, arg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
